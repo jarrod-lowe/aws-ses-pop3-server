@@ -1,0 +1,13 @@
+[Unit]
+Description=POP3 Server using S3 backend
+Requires=auth-proxy.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+Environment=HOME=/root
+ExecStart=/root/pop3-server
+WorkingDirectory=/root
+
+[Install]
+WantedBy=multi-user.target

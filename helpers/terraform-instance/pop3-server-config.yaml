@@ -1,0 +1,6 @@
+# Configuration for pop3-server
+host: "0.0.0.0"
+port: 2110 # Use 2995 for TLS
+#tls-cert-path, tls-key-path
+verbose: false
+http-basic-auth-url: http://localhost:8000/

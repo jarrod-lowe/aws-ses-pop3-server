@@ -18,3 +18,11 @@
 
 cover.out
 config.yaml
+terraform.tfvars
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+backend.hcl
+out/pop3-server-arm64
+out/pop3-server-amd64
+.terraform

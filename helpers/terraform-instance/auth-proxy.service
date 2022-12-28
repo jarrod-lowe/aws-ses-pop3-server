@@ -1,0 +1,10 @@
+[Unit]
+Description=Authentication Proxy for POP3 Server
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/root/auth_proxy.py
+
+[Install]
+WantedBy=multi-user.target
