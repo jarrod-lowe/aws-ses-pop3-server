@@ -67,7 +67,17 @@ To use JWTs, provide a JWT secret via the config and provide `jwt` as user and t
 Perform a GET request to retrieve all required information the server needs to access an S3 bucket.
 The GET request transmits user and password via basic auth and expects the response to have status code 200 and a JSON body that follows the same format as the JWT content (see above).
 
-### 3) Static credentials
+### 3) Invoke Lambda
+
+Invokes a Lambda using the AWS API. This requires that the environment is set up
+to provide suitable IAM credentials. These are not the same credentials as are
+used to access the S3 bucket.
+
+The lambda returns a JSON body with a `StatusCode` field (which should be 200
+when the username and password are correct) and the fields for the S3
+configuration, which are the same as the JWT content (see above).
+
+### 4) Static credentials
 
 Just accept one hardcoded pair or user and password.
 You have to provide all information required to access one (!) S3 bucket via the config.
@@ -118,7 +128,12 @@ http-basic-auth-url-insecure: false # optional, defaults to false. If set to tru
 
 
 
-# STATIC CREDENTIALS SETTINGS (only effictive if neither jwt-secret nor http-basic-auth-url are set)
+# LAMBDA INVOKE (only effective if jwt-secret and http-basic-auth-url are not set)
+lambda-invoke-function: MyFunctionName
+
+
+
+# STATIC CREDENTIALS SETTINGS (only effictive if none of jwt-secret, lambda-invoke-function, or http-basic-auth-url are set)
 user: "jane.doe@example.com" # optional, defaults to "user"
 password: "6xRkiWA4mZBSaNmv" # optional, defaults to "changeit". DO CHANGE IT!
 
