@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.24.0"
+    }
+  }
+}
+
 provider "aws" {
   default_tags {
     tags = {
@@ -8,6 +17,6 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    key    = "pop3.tfstate"
+    key = "pop3.tfstate"
   }
 }

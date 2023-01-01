@@ -17,12 +17,14 @@
 .DS_Store
 
 cover.out
-config.yaml
+
+# Terraform
 terraform.tfvars
 .terraform.tfstate.lock.info
 terraform.tfstate
 terraform.tfstate.backup
 backend.hcl
-out/pop3-server-arm64
-out/pop3-server-amd64
 .terraform
+*.zip
+/helpers/terraform-instance/tls-key-layer/python/*
+!/helpers/terraform-instance/tls-key-layer/python/.dir

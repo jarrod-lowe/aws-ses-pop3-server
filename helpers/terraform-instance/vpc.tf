@@ -6,8 +6,6 @@ resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
-data "aws_availability_zones" "current" {}
-
 resource "aws_subnet" "my_subnet" {
   count = length(data.aws_availability_zones.current.names)
 
@@ -31,6 +29,13 @@ resource "aws_security_group" "my_security_group" {
   name        = var.project
   description = "Security group for ${var.project}"
   vpc_id      = aws_vpc.my_vpc.id
+
+  ingress {
+    from_port   = var.port
+    to_port     = var.port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   egress {
     from_port   = 443

@@ -135,8 +135,8 @@ func NewHTTPBasicAuthProviderCreator(timeout time.Duration, url string) Provider
 	}
 }
 
-func NewLambdaProviderCreator(timeout time.Duration, function string) ProviderCreator {
-	sess, err := session.NewSession() // TODO: Args for key?
+func NewLambdaProviderCreator(function string) ProviderCreator {
+	sess, err := session.NewSession()
 	if err != nil {
 		panic(err)
 	}
@@ -155,14 +155,14 @@ func NewLambdaProviderCreator(timeout time.Duration, function string) ProviderCr
 		res, err := client.Invoke(&lambda.InvokeInput{
 			FunctionName:   aws.String(function),
 			InvocationType: aws.String("RequestResponse"),
-			Payload:        payload,
+			Payload:        payloadJson,
 		})
 		if err != nil {
 			return nil, err
 		}
 
 		var lambdaResponse LambdaResponse
-		if err := json.NewDecoder(res.Payload).Decode(&lambdaResponse); err != nil {
+		if err := json.Unmarshal(res.Payload, &lambdaResponse); err != nil {
 			return nil, err
 		}
 
@@ -170,6 +170,13 @@ func NewLambdaProviderCreator(timeout time.Duration, function string) ProviderCr
 			return nil, fmt.Errorf("received status code %v", lambdaResponse.StatusCode)
 		}
 
-		return new S3Provider(lambdaResponse)
+		return newS3Provider(S3Bucket{
+			AWSAccessKeyID:     lambdaResponse.AWSAccessKeyID,
+			AWSSecretAccessKey: lambdaResponse.AWSSecretAccessKey,
+			AWSSessionToken:    lambdaResponse.AWSSessionToken,
+			Region:             lambdaResponse.Region,
+			Bucket:             lambdaResponse.Bucket,
+			Prefix:             lambdaResponse.Prefix,
+		})
 	}
 }

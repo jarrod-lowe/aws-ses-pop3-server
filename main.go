@@ -82,7 +82,7 @@ func initProviderCreator(v *viper.Viper) provider.ProviderCreator {
 	}
 
 	if v.IsSet("lambda-invoke-function") {
-		return provider.NewLambdaProviderCreator(v.GetString("lambda-invoke-function")
+		return provider.NewLambdaProviderCreator(v.GetString("lambda-invoke-function"))
 	}
 
 	if !v.IsSet("user") {

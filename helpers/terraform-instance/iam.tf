@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "ec2_role_assume" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = ["ec2.${data.aws_partition.current.dns_suffix}"]
+      identifiers = ["ecs-tasks.${data.aws_partition.current.dns_suffix}"]
     }
   }
 }
@@ -18,35 +18,9 @@ data "aws_iam_policy_document" "ec2_role_assume" {
 # Define an IAM policy document that allows read/write access to the S3 bucket
 data "aws_iam_policy_document" "policy" {
   statement {
-    sid       = "S3CodeAccess"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.my_bucket.arn}/${local.code_path_prefix}/*"]
-  }
-
-  statement {
-    sid       = "S3CodeAccessList"
-    effect    = "Allow"
-    actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.my_bucket.arn]
-  }
-
-  statement {
-    sid       = "AssumeRole"
-    actions   = ["sts:AssumeRole"]
-    resources = [aws_iam_role.mail_user_role.arn]
-  }
-
-  statement {
-    sid       = "GetUserConfig"
-    actions   = ["dynamodb:GetItem"]
-    resources = [aws_dynamodb_table.password_table.arn]
-  }
-
-  statement {
-    sid       = "FindBucket"
-    actions   = ["s3:GetBucketLocation"]
-    resources = ["arn:aws:s3:::*"]
+    sid       = "InvokeLambda"
+    actions   = ["lambda:Invoke"]
+    resources = [aws_lambda_function.auth_proxy.arn]
   }
 }
 
@@ -84,7 +58,7 @@ data "aws_iam_policy_document" "mail_user_assume" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "AWS"
-      identifiers = [aws_iam_role.ec2_role.arn]
+      identifiers = [aws_iam_role.auth_proxy.arn]
     }
   }
 }
@@ -113,4 +87,64 @@ resource "aws_iam_policy" "mail_user_policy" {
 resource "aws_iam_role_policy_attachment" "mail_user_policy" {
   role       = aws_iam_role.mail_user_role.name
   policy_arn = aws_iam_policy.mail_user_policy.arn
+}
+
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "${var.project}-ecs_execution_role"
+
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "ecs_execution_policy" {
+  name        = "${var.project}-ecs_execution_policy"
+  description = "Policy for the ECS execution role"
+
+  policy = data.aws_iam_policy_document.ecs_execution_policy.json
+}
+
+data "aws_iam_policy_document" "ecs_execution_policy" {
+  statement {
+    sid = "DownloadEcrImage"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+    ]
+    resources = [aws_ecr_repository.container.arn]
+  }
+
+  statement {
+    sid       = "EcrAuth"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "Logs"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.container.arn}:log-stream:${var.project}/*"]
+  }
+
+  statement {
+    sid       = "XRay"
+    actions   = ["xray:PutTraceSegments", "xray:PutTelemetryRecords"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy_attachment" "ecs_execution_policy" {
+  name       = "${var.project}-ecs_execution_policy"
+  roles      = [aws_iam_role.ecs_execution_role.name]
+  policy_arn = aws_iam_policy.ecs_execution_policy.arn
 }

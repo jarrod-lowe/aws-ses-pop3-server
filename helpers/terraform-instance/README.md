@@ -21,15 +21,11 @@ terraform apply
 
 ## TODO
 
-*   ASG Health monitor
-*   ASG Hold previous for 10 minutes
+*   ECS Hold previous for 10 minutes?
+*   ECS health checks
 *   Route53 Integration
-*   Notifications of bad ASG health
+*   Notifications of bad container health
 *   Monitoring, incl delivery stats?
-*   Logs export to cloudwatch
 *   TLS
 *   Auth-proxy: Expiry of lru_cache - ratelimit user auths instead
-*   Auth-proxy: exception as JSON
-*   Auth-proxy: HTTP log as JSON
 *   Open inbound TCP port
-*   Change to using ECS
